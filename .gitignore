@@ -1,0 +1,30 @@
+# Binaries and build artifacts
+/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/cmd/noded/noded
+/cmd/trackerd/trackerd
+/cmd/aldea/aldea
+
+# Go workspace & dependencies
+vendor/
+go.work
+go.work.sum
+
+# System & IDE configuration
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.tmp
+*.log
+
+# Ignore all markdown documentation except README.md
+*.md
+**/*.md
+!README.md
+!**/README.md
