@@ -29,3 +29,5 @@ go.work.sum
 !README.md
 !**/README.md
 !docs/adr/*.md
+!docs/GETTING_STARTED.md
+!docs/SELF_HOSTING.md
