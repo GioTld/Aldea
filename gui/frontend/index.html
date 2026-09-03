@@ -23,6 +23,7 @@
       </div>
 
       <div class="topbar-status">
+        <button class="btn btn-secondary btn-sm" id="btnOpenArchModal">ESPECIFICACIONES ARQUITECTURA</button>
         <span class="status-indicator">
           <span class="dot dot-active"></span>
           <span class="status-label" id="statusText">NETWORK ONLINE</span>
@@ -31,6 +32,39 @@
       </div>
     </header>
 
+    <!-- Architecture Specification Modal (Separate Section, Professional Tone) -->
+    <div class="modal-overlay hidden" id="archModal">
+      <div class="modal-card">
+        <div class="card-header">
+          <span class="card-title">GARANTÍAS Y ESPECIFICACIONES DE ARQUITECTURA</span>
+          <button class="btn-close" id="btnCloseArchModal">&times;</button>
+        </div>
+        
+        <div class="arch-spec-list">
+          <div class="arch-spec-item">
+            <div class="spec-header mono">01. CIFRADO CLIENT-SIDE CERO-CONOCIMIENTO (RNF-01)</div>
+            <p class="spec-body">
+              Toda información introducida en la red se fragmenta y cifra localmente mediante algoritmos AES-256-GCM antes de iniciar cualquier transmisión. Las claves criptográficas son derivadas exclusivamente en el cliente emisor mediante Argon2id. Ni los nodos de almacenamiento pares ni la infraestructura de coordinación centralizada poseen acceso al contenido en texto plano.
+            </p>
+          </div>
+
+          <div class="arch-spec-item">
+            <div class="spec-header mono">02. MATRIZ REDUNDANTE DE CODIFICACIÓN DE BORRADO 4+2 (RNF-05)</div>
+            <p class="spec-body">
+              La distribución de bloques emplea matrices de dispersión Reed-Solomon configuradas en relación 4 fragmentos de datos y 2 de paridad. El sistema garantiza la integridad operacional y la reconstrucción determinista del volumen siempre que un mínimo de 4 nodos dentro del clúster permanezcan en estado alcanzable.
+            </p>
+          </div>
+
+          <div class="arch-spec-item">
+            <div class="spec-header mono">03. EJECUCIÓN PERSISTENTE Y SERVICIO DE FONDO (RF-22)</div>
+            <p class="spec-body">
+              El demonio de almacenamiento local opera de manera asíncrona integrado con la bandeja del sistema anfitrión. Gestiona el ciclo de vida de los fragmentos asignados y responde a solicitudes de verificación de salud (liveness heuristics) manteniendo un consumo de recursos acotado y sin requerir la presencia de la interfaz gráfica.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Onboarding Panel (Shown if network not created/joined) -->
     <section class="card onboarding-box" id="onboardingView">
       <div class="card-header">
@@ -38,33 +72,8 @@
         <span class="badge badge-mono">ZERO-KNOWLEDGE STORAGE</span>
       </div>
       <p class="card-desc">
-        Configura tu nodo para unirte al grupo cerrado. Tus archivos son divididos en fragmentos (erasure coding 4+2) y cifrados con AES-256 antes de salir de este equipo.
+        Configura tu nodo local para integrarte a la red distribuida. Asigna espacio de almacenamiento o únete a un clúster privado mediante un token firmado.
       </p>
-
-      <!-- Plain Language Explanation Box (RNF-10) -->
-      <div class="explain-box">
-        <div class="explain-title">¿CÓMO FUNCIONA LA RED ALDEA? (SIN TECNICISMOS)</div>
-        <div class="explain-steps">
-          <div class="explain-step">
-            <span class="step-num">1</span>
-            <div class="step-content">
-              <strong>Cifrado Privado Local:</strong> Cada archivo se cifra en tu propio dispositivo antes de enviarlo. Nadie en la red (ni siquiera el coordinador) puede ver tu contenido.
-            </div>
-          </div>
-          <div class="explain-step">
-            <span class="step-num">2</span>
-            <div class="step-content">
-              <strong>Tolerancia 4+2 (Erasure Coding):</strong> Tu archivo se divide en 6 piezas. Con que solo 4 de los ordenadores de tu grupo estén encendidos, recuperas el 100% de tu archivo intacto.
-            </div>
-          </div>
-          <div class="explain-step">
-            <span class="step-num">3</span>
-            <div class="step-content">
-              <strong>Agente en Segundo Plano:</strong> Al cerrar esta ventana, el nodo sigue corriendo en la barra del sistema (System Tray), sirviendo fragmentos a tus amigos sin interrumpir tu trabajo.
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="init-grid">
         <div class="init-pane">

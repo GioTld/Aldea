@@ -21,6 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const filesTableBody = document.getElementById('filesTableBody');
   const fileCountBadge = document.getElementById('fileCountBadge');
 
+  const archModal = document.getElementById('archModal');
+  const btnOpenArchModal = document.getElementById('btnOpenArchModal');
+  const btnCloseArchModal = document.getElementById('btnCloseArchModal');
+
+  if (btnOpenArchModal && archModal && btnCloseArchModal) {
+    btnOpenArchModal.addEventListener('click', () => {
+      archModal.classList.remove('hidden');
+    });
+    btnCloseArchModal.addEventListener('click', () => {
+      archModal.classList.add('hidden');
+    });
+    archModal.addEventListener('click', (e) => {
+      if (e.target === archModal) {
+        archModal.classList.add('hidden');
+      }
+    });
+  }
+
   let localFiles = [];
 
   // 1. Create Network
