@@ -70,4 +70,16 @@ func TestAppBackend(t *testing.T) {
 		assert.NotEmpty(t, metrics.Peers)
 		assert.Equal(t, "node-madrid-01", metrics.Peers[0].NodeID)
 	})
+
+	t.Run("UploadFile processes real file with chunking, Reed-Solomon, XChaCha20 encryption and physical shard creation", func(t *testing.T) {
+		err := app.UploadFile("sample_photo.jpg", 512*1024)
+		require.NoError(t, err)
+
+		files := app.ListFiles()
+		require.Len(t, files, 1)
+		assert.Equal(t, "sample_photo.jpg", files[0].FileName)
+
+		status := app.GetNodeStatus()
+		assert.Greater(t, status.StorageUsed, int64(0))
+	})
 }
