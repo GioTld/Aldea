@@ -245,7 +245,7 @@
               <div class="header-right">
                 <input type="text" id="computeSearchInput" class="input-mono input-sm" placeholder="FILTRAR CARGAS..." />
                 <button class="btn btn-primary btn-sm" id="btnOpenDeployModal">+ NUEVA CARGA</button>
-                <span class="badge badge-mono" id="computeCountBadge">1 CARGA ACTIVA</span>
+                <span class="badge badge-mono" id="computeCountBadge">0 CARGAS ACTIVAS</span>
               </div>
             </div>
 
@@ -261,12 +261,8 @@
                   </tr>
                 </thead>
                 <tbody id="computeTableBody">
-                  <tr>
-                    <td class="mono">wl-web-caddy</td>
-                    <td>frontend-ingress</td>
-                    <td class="mono">caddy:alpine</td>
-                    <td><span class="badge badge-emerald">RUNNING</span></td>
-                    <td class="mono">10.244.0.12</td>
+                  <tr class="empty-state">
+                    <td colspan="5">No hay cargas de cómputo en ejecución. Haz clic en '+ NUEVA CARGA' para desplegar.</td>
                   </tr>
                 </tbody>
               </table>
@@ -279,11 +275,11 @@
           <div class="metrics-grid">
             <div class="card metric-card">
               <div class="metric-card-header mono">TASA DE TRANSFERENCIA (SUBIDA)</div>
-              <div class="metric-card-value mono" id="speedUploadVal">124.5 KB/s</div>
+              <div class="metric-card-value mono" id="speedUploadVal">0.0 KB/s</div>
             </div>
             <div class="card metric-card">
               <div class="metric-card-header mono">TASA DE TRANSFERENCIA (BAJADA)</div>
-              <div class="metric-card-value mono" id="speedDownloadVal">482.0 KB/s</div>
+              <div class="metric-card-value mono" id="speedDownloadVal">0.0 KB/s</div>
             </div>
           </div>
 
@@ -304,29 +300,8 @@
                   </tr>
                 </thead>
                 <tbody id="peersTableBody">
-                  <tr>
-                    <td class="mono">node-madrid-01</td>
-                    <td class="mono">linux</td>
-                    <td class="mono">24 ms</td>
-                    <td><span class="badge badge-emerald">ONLINE</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono">node-bogota-02</td>
-                    <td class="mono">linux</td>
-                    <td class="mono">45 ms</td>
-                    <td><span class="badge badge-emerald">ONLINE</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono">node-tokyo-03</td>
-                    <td class="mono">linux</td>
-                    <td class="mono">180 ms</td>
-                    <td><span class="badge badge-emerald">ONLINE</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono">node-miami-04</td>
-                    <td class="mono">windows</td>
-                    <td class="mono">38 ms</td>
-                    <td><span class="badge badge-emerald">ONLINE</span></td>
+                  <tr class="empty-state">
+                    <td colspan="4">No hay nodos pares conectados actualmente.</td>
                   </tr>
                 </tbody>
               </table>

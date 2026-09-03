@@ -58,17 +58,15 @@ func TestAppBackend(t *testing.T) {
 		assert.False(t, app.IsPaused())
 	})
 
-	t.Run("GetComputeWorkloads returns workload list", func(t *testing.T) {
+	t.Run("GetComputeWorkloads returns real engine container list", func(t *testing.T) {
 		workloads := app.GetComputeWorkloads()
-		assert.NotEmpty(t, workloads)
-		assert.Equal(t, "wl-web-caddy", workloads[0].WorkloadID)
+		assert.NotNil(t, workloads)
 	})
 
-	t.Run("GetNetworkMetrics returns peer latencies and throughput", func(t *testing.T) {
+	t.Run("GetNetworkMetrics returns real network collector snapshot", func(t *testing.T) {
 		metrics := app.GetNetworkMetrics()
-		assert.Greater(t, metrics.DownloadSpeedKBps, float64(0))
-		assert.NotEmpty(t, metrics.Peers)
-		assert.Equal(t, "node-madrid-01", metrics.Peers[0].NodeID)
+		assert.GreaterOrEqual(t, metrics.DownloadSpeedKBps, float64(0))
+		assert.NotNil(t, metrics.Peers)
 	})
 
 	t.Run("UploadFile processes real file with chunking, Reed-Solomon, XChaCha20 encryption and physical shard creation", func(t *testing.T) {

@@ -103,15 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (tabStorage && tabCompute && tabMetrics) {
-    tabStorage.addEventListener('click', () => switchTab(tabStorage, viewStorage));
-    tabCompute.addEventListener('click', () => switchTab(tabCompute, viewCompute));
-    tabMetrics.addEventListener('click', () => switchTab(tabMetrics, viewMetrics));
+    tabStorage.addEventListener('click', () => { switchTab(tabStorage, viewStorage); renderFilesTable(); });
+    tabCompute.addEventListener('click', () => { switchTab(tabCompute, viewCompute); renderComputeTable(); });
+    tabMetrics.addEventListener('click', () => { switchTab(tabMetrics, viewMetrics); renderMetricsView(); });
   }
-
-  let localFiles = [];
-  let computeWorkloads = [
-    { id: 'wl-web-caddy', name: 'frontend-ingress', image: 'caddy:alpine', state: 'RUNNING', ip: '10.244.0.12' }
-  ];
 
   // 1. Create Network
   btnCreate.addEventListener('click', async () => {
@@ -320,9 +315,20 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  function renderComputeTable() {
+  let localFiles = [];
+
+  async function renderComputeTable() {
+    let workloads = [];
+    if (window.go && window.go.main && window.go.main.App) {
+      try {
+        workloads = await window.go.main.App.GetComputeWorkloads();
+      } catch (err) {
+        console.error('Error fetching compute workloads:', err);
+      }
+    }
+
     const query = computeSearchInput ? computeSearchInput.value.toLowerCase().trim() : '';
-    const filtered = computeWorkloads.filter(w => w.name.toLowerCase().includes(query) || w.id.toLowerCase().includes(query));
+    const filtered = (workloads || []).filter(w => (w.name || '').toLowerCase().includes(query) || (w.workload_id || '').toLowerCase().includes(query));
 
     computeCountBadge.textContent = `${filtered.length} CARGA(S) ACTIVA(S)`;
     if (filtered.length === 0) {
@@ -336,13 +342,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     computeTableBody.innerHTML = filtered.map(w => `
       <tr>
-        <td class="mono">${escapeHtml(w.id)}</td>
+        <td class="mono">${escapeHtml(w.workload_id)}</td>
         <td>${escapeHtml(w.name)}</td>
         <td class="mono">${escapeHtml(w.image)}</td>
         <td><span class="badge badge-emerald">${w.state}</span></td>
-        <td class="mono">${w.ip}</td>
+        <td class="mono">${w.ip_address}</td>
       </tr>
     `).join('');
+  }
+
+  async function renderMetricsView() {
+    if (window.go && window.go.main && window.go.main.App) {
+      try {
+        const metrics = await window.go.main.App.GetNetworkMetrics();
+        const speedUp = document.getElementById('speedUploadVal');
+        const speedDown = document.getElementById('speedDownloadVal');
+        const peersTable = document.getElementById('peersTableBody');
+
+        if (speedUp) speedUp.textContent = `${(metrics.upload_speed_kbps || 0).toFixed(1)} KB/s`;
+        if (speedDown) speedDown.textContent = `${(metrics.download_speed_kbps || 0).toFixed(1)} KB/s`;
+
+        const peers = metrics.peers || [];
+        if (peersTable) {
+          if (peers.length === 0) {
+            peersTable.innerHTML = `<tr class="empty-state"><td colspan="4">No hay nodos pares conectados actualmente.</td></tr>`;
+          } else {
+            peersTable.innerHTML = peers.map(p => `
+              <tr>
+                <td class="mono">${escapeHtml(p.node_id)}</td>
+                <td class="mono">${escapeHtml(p.os)}</td>
+                <td class="mono">${p.latency_ms} ms</td>
+                <td><span class="badge badge-emerald">ONLINE</span></td>
+              </tr>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching metrics:', err);
+      }
+    }
   }
 
   function formatBytes(bytes) {
