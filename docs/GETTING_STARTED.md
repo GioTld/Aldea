@@ -38,5 +38,5 @@ Cada usuario ajusta el deslizador (**Asignación de Disco**) para determinar cu�
 ## Paso 4: Subir y Recuperar Archivos
 
 - Arrastra tus fotos, vídeos o copias de seguridad a la zona de carga de la aplicación.
-- Tu archivo se cifrará de forma privada (AES-256) y se dividirá en 6 piezas distribuidas entre los equipos de tus amigos.
-- **Tolerancia a fallos**: Aunque 2 ordenadores del grupo se apaguen o estén sin conexión, podrás descargar y restaurar tu archivo al 100%.
+- Tu archivo se cifrará de forma privada (XChaCha20-Poly1305) y se dividirá en 8 piezas distribuidas entre los equipos de tus amigos (esquema 4+4).
+- **Tolerancia a fallos**: Aunque 4 ordenadores del grupo se apaguen o estén sin conexión, podrás descargar y restaurar tu archivo al 100%.

@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: `file-${Date.now()}`,
         name: name,
         size: formatBytes(size),
-        scheme: '4+2 (AES-256)',
+        scheme: '4+4 (XChaCha20)',
         date: new Date().toISOString().split('T')[0]
       });
       renderFilesTable();

@@ -44,14 +44,14 @@
           <div class="arch-spec-item">
             <div class="spec-header mono">01. CIFRADO CLIENT-SIDE DE CERO CONOCIMIENTO</div>
             <p class="spec-body">
-              Toda información introducida en la red se fragmenta y cifra localmente mediante algoritmos AES-256-GCM antes de iniciar cualquier transmisión. Las claves criptográficas son derivadas exclusivamente en el cliente emisor mediante Argon2id. Ni los nodos de almacenamiento pares ni la infraestructura de coordinación centralizada poseen acceso al contenido en texto plano.
+              Toda información introducida en la red se fragmenta y cifra localmente mediante algoritmos XChaCha20-Poly1305 antes de iniciar cualquier transmisión. Las claves criptográficas son derivadas exclusivamente en el cliente emisor mediante Argon2id. Ni los nodos de almacenamiento pares ni la infraestructura de coordinación centralizada poseen acceso al contenido en texto plano.
             </p>
           </div>
 
           <div class="arch-spec-item">
-            <div class="spec-header mono">02. MATRIZ REDUNDANTE DE CODIFICACIÓN DE BORRADO (4+2)</div>
+            <div class="spec-header mono">02. MATRIZ REDUNDANTE DE CODIFICACIÓN DE BORRADO (4+4)</div>
             <p class="spec-body">
-              La distribución de bloques emplea matrices de dispersión Reed-Solomon configuradas en relación 4 fragmentos de datos y 2 de paridad. El sistema garantiza la integridad operacional y la reconstrucción determinista del volumen siempre que un mínimo de 4 nodos dentro del clúster permanezcan en estado alcanzable.
+              La distribución de bloques emplea matrices de dispersión Reed-Solomon configuradas en relación 4 fragmentos de datos y 4 de paridad (8 bloques totales). El sistema garantiza la integridad operacional y la reconstrucción determinista del volumen siempre que un mínimo de 4 nodos dentro del clúster permanezcan en estado alcanzable.
             </p>
           </div>
 
@@ -132,7 +132,7 @@
             </div>
             <div class="metric-row">
               <span class="metric-key">CIFRADO</span>
-              <span class="metric-val mono">ARGON2ID + AES-256</span>
+              <span class="metric-val mono">ARGON2ID + CHACHA20</span>
             </div>
           </div>
         </section>
