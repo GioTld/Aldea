@@ -180,76 +180,157 @@
 
       </aside>
 
-      <!-- Right Main Area: Files & Upload -->
+      <!-- Right Main Area: Files, Compute & Metrics -->
       <section class="main-col">
         
-        <!-- Drag & Drop Zone (RF-21) -->
-        <div class="card upload-box">
-          <div class="drop-target" id="dropZone">
-            <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-            </svg>
-            <div class="drop-text-primary">ARRASTRA Y SUELTA ARCHIVOS AQUÍ</div>
-            <div class="drop-text-sub">o haz clic para explorar tu sistema de archivos local</div>
-            <input type="file" id="fileInput" class="hidden" />
+        <!-- Tab Navigation Bar -->
+        <div class="card nav-tabs-card">
+          <div class="nav-tabs">
+            <button class="nav-tab active" id="tabStorage">ALMACENAMIENTO</button>
+            <button class="nav-tab" id="tabCompute">CÓMPUTO P2P</button>
+            <button class="nav-tab" id="tabMetrics">MÉTRICAS DE RED</button>
           </div>
         </div>
 
-        <!-- Files Data Table -->
-        <div class="card files-box">
-          <div class="card-header">
-            <span class="card-title-sm">ARCHIVOS EN LA RED (DISPERSOS & CIFRADOS)</span>
-            <span class="badge badge-mono" id="fileCountBadge">0 ARCHIVOS</span>
+        <!-- TAB 1: STORAGE VIEW -->
+        <div id="viewStorage" class="tab-pane">
+          <!-- Drag & Drop Zone -->
+          <div class="card upload-box">
+            <div class="drop-target" id="dropZone">
+              <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              <div class="drop-text-primary">ARRASTRA Y SUELTA ARCHIVOS AQUÍ</div>
+              <div class="drop-text-sub">o haz clic para explorar tu sistema de archivos local</div>
+              <input type="file" id="fileInput" class="hidden" />
+            </div>
           </div>
 
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>NOMBRE DEL ARCHIVO</th>
-                  <th>TAMAÑO</th>
-                  <th>ESQUEMA</th>
-                  <th>FECHA</th>
-                  <th>ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody id="filesTableBody">
-                <tr class="empty-state">
-                  <td colspan="5">Ningún archivo almacenado en el pool. Arrastra un archivo arriba para iniciar.</td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- Files Data Table with Search -->
+          <div class="card files-box">
+            <div class="card-header">
+              <span class="card-title-sm">ARCHIVOS EN LA RED (DISPERSOS & CIFRADOS)</span>
+              <div class="header-right">
+                <input type="text" id="fileSearchInput" class="input-mono input-sm" placeholder="FILTRAR ARCHIVOS..." />
+                <span class="badge badge-mono" id="fileCountBadge">0 ARCHIVOS</span>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>NOMBRE DEL ARCHIVO</th>
+                    <th>TAMAÑO</th>
+                    <th>ESQUEMA</th>
+                    <th>FECHA</th>
+                    <th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody id="filesTableBody">
+                  <tr class="empty-state">
+                    <td colspan="5">Ningún archivo almacenado en el pool. Arrastra un archivo arriba para iniciar.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- Compute Workloads Data Table -->
-        <div class="card compute-box" style="margin-top: 16px;">
-          <div class="card-header">
-            <span class="card-title-sm">CARGAS DE CÓMPUTO EN EJECUCIÓN (PARES LINUX)</span>
-            <span class="badge badge-mono" id="computeCountBadge">1 CARGA ACTIVA</span>
+        <!-- TAB 2: COMPUTE VIEW -->
+        <div id="viewCompute" class="tab-pane hidden">
+          <div class="card compute-box">
+            <div class="card-header">
+              <span class="card-title-sm">CARGAS DE CÓMPUTO EN EJECUCIÓN (PARES LINUX)</span>
+              <div class="header-right">
+                <input type="text" id="computeSearchInput" class="input-mono input-sm" placeholder="FILTRAR CARGAS..." />
+                <button class="btn btn-primary btn-sm" id="btnOpenDeployModal">+ NUEVA CARGA</button>
+                <span class="badge badge-mono" id="computeCountBadge">1 CARGA ACTIVA</span>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>WORKLOAD ID</th>
+                    <th>NOMBRE</th>
+                    <th>IMAGEN OCI</th>
+                    <th>ESTADO</th>
+                    <th>IP ASIGNADA</th>
+                  </tr>
+                </thead>
+                <tbody id="computeTableBody">
+                  <tr>
+                    <td class="mono">wl-web-caddy</td>
+                    <td>frontend-ingress</td>
+                    <td class="mono">caddy:alpine</td>
+                    <td><span class="badge badge-emerald">RUNNING</span></td>
+                    <td class="mono">10.244.0.12</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: METRICS VIEW -->
+        <div id="viewMetrics" class="tab-pane hidden">
+          <div class="metrics-grid">
+            <div class="card metric-card">
+              <div class="metric-card-header mono">TASA DE TRANSFERENCIA (SUBIDA)</div>
+              <div class="metric-card-value mono" id="speedUploadVal">124.5 KB/s</div>
+            </div>
+            <div class="card metric-card">
+              <div class="metric-card-header mono">TASA DE TRANSFERENCIA (BAJADA)</div>
+              <div class="metric-card-value mono" id="speedDownloadVal">482.0 KB/s</div>
+            </div>
           </div>
 
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>WORKLOAD ID</th>
-                  <th>NOMBRE</th>
-                  <th>IMAGEN OCI</th>
-                  <th>ESTADO</th>
-                  <th>IP ASIGNADA</th>
-                </tr>
-              </thead>
-              <tbody id="computeTableBody">
-                <tr>
-                  <td class="mono">wl-web-caddy</td>
-                  <td>frontend-ingress</td>
-                  <td class="mono">caddy:alpine</td>
-                  <td><span class="badge badge-emerald">RUNNING</span></td>
-                  <td class="mono">10.244.0.12</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="card peers-box" style="margin-top: 16px;">
+            <div class="card-header">
+              <span class="card-title-sm">ESTADO Y LATENCIA DE NODOS PARES</span>
+              <span class="badge badge-mono">HEALTH MONITOR</span>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID DEL NODO</th>
+                    <th>SISTEMA OPERATIVO</th>
+                    <th>LATENCIA</th>
+                    <th>ESTADO</th>
+                  </tr>
+                </thead>
+                <tbody id="peersTableBody">
+                  <tr>
+                    <td class="mono">node-madrid-01</td>
+                    <td class="mono">linux</td>
+                    <td class="mono">24 ms</td>
+                    <td><span class="badge badge-emerald">ONLINE</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">node-bogota-02</td>
+                    <td class="mono">linux</td>
+                    <td class="mono">45 ms</td>
+                    <td><span class="badge badge-emerald">ONLINE</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">node-tokyo-03</td>
+                    <td class="mono">linux</td>
+                    <td class="mono">180 ms</td>
+                    <td><span class="badge badge-emerald">ONLINE</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">node-miami-04</td>
+                    <td class="mono">windows</td>
+                    <td class="mono">38 ms</td>
+                    <td><span class="badge badge-emerald">ONLINE</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -258,6 +339,31 @@
     </main>
 
   </div>
+
+  <!-- Deploy Workload Modal -->
+  <div class="modal-overlay hidden" id="deployModal">
+    <div class="modal-card">
+      <div class="card-header">
+        <span class="card-title">DESPLEGAR CARGA DE CÓMPUTO OCI</span>
+        <button class="btn-close" id="btnCloseDeployModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="warning-banner">
+          ⚠️ ADVERTENCIA DE SEGURIDAD: Las cargas de cómputo se ejecutan en memoria RAM en texto plano en los equipos anfitriones asignados. El propietario del nodo anfitrión puede inspeccionar el código y los datos en memoria durante la ejecución.
+        </div>
+
+        <div class="input-stack" style="margin-top: 16px;">
+          <label class="field-label">MANIFIESTO YAML (.aldea-workload.yaml)</label>
+          <textarea id="yamlManifestInput" class="input-mono textarea-code" rows="8" placeholder="workload_id: wl-app-01&#10;name: my-service&#10;image: nginx:alpine&#10;type: stateless&#10;cpu_cores: 1.0&#10;memory_mb: 512"></textarea>
+          <button class="btn btn-primary" id="btnConfirmDeploy">DESPLEGAR CARGA EN EL CLÚSTER</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script src="app.js"></script>
 </body>

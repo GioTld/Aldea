@@ -63,4 +63,11 @@ func TestAppBackend(t *testing.T) {
 		assert.NotEmpty(t, workloads)
 		assert.Equal(t, "wl-web-caddy", workloads[0].WorkloadID)
 	})
+
+	t.Run("GetNetworkMetrics returns peer latencies and throughput", func(t *testing.T) {
+		metrics := app.GetNetworkMetrics()
+		assert.Greater(t, metrics.DownloadSpeedKBps, float64(0))
+		assert.NotEmpty(t, metrics.Peers)
+		assert.Equal(t, "node-madrid-01", metrics.Peers[0].NodeID)
+	})
 }

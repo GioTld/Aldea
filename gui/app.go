@@ -36,6 +36,19 @@ type ComputeWorkloadDTO struct {
 	IPAddress  string `json:"ip_address"`
 }
 
+type PeerMetricDTO struct {
+	NodeID    string `json:"node_id"`
+	OS        string `json:"os"`
+	LatencyMs int64  `json:"latency_ms"`
+	IsHealthy bool   `json:"is_healthy"`
+}
+
+type NetworkMetricsDTO struct {
+	UploadSpeedKBps   float64         `json:"upload_speed_kbps"`
+	DownloadSpeedKBps float64         `json:"download_speed_kbps"`
+	Peers             []PeerMetricDTO `json:"peers"`
+}
+
 type App struct {
 	ctx          context.Context
 	dataDir      string
@@ -186,6 +199,22 @@ func (a *App) GetComputeWorkloads() []ComputeWorkloadDTO {
 			Image:      "caddy:alpine",
 			State:      "running",
 			IPAddress:  "10.244.0.12",
+		},
+	}
+}
+
+func (a *App) GetNetworkMetrics() NetworkMetricsDTO {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	return NetworkMetricsDTO{
+		UploadSpeedKBps:   124.5,
+		DownloadSpeedKBps: 482.0,
+		Peers: []PeerMetricDTO{
+			{NodeID: "node-madrid-01", OS: "linux", LatencyMs: 24, IsHealthy: true},
+			{NodeID: "node-bogota-02", OS: "linux", LatencyMs: 45, IsHealthy: true},
+			{NodeID: "node-tokyo-03", OS: "linux", LatencyMs: 180, IsHealthy: true},
+			{NodeID: "node-miami-04", OS: "windows", LatencyMs: 38, IsHealthy: true},
 		},
 	}
 }
