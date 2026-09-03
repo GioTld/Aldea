@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  tracker:
+    build: .
+    command: ["trackerd", "-config", "/etc/aldea/tracker.yaml"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - tracker-data:/data
+      - ./deploy/docker/tracker.yaml:/etc/aldea/tracker.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/nodes"]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+
+  node1:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node1-data:/data
+      - ./deploy/docker/node1.yaml:/etc/aldea/node.yaml:ro
+
+  node2:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node2-data:/data
+      - ./deploy/docker/node2.yaml:/etc/aldea/node.yaml:ro
+
+  node3:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node3-data:/data
+      - ./deploy/docker/node3.yaml:/etc/aldea/node.yaml:ro
+
+  node4:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node4-data:/data
+      - ./deploy/docker/node4.yaml:/etc/aldea/node.yaml:ro
+
+  node5:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node5-data:/data
+      - ./deploy/docker/node5.yaml:/etc/aldea/node.yaml:ro
+
+  node6:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node6-data:/data
+      - ./deploy/docker/node6.yaml:/etc/aldea/node.yaml:ro
+
+  node7:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node7-data:/data
+      - ./deploy/docker/node7.yaml:/etc/aldea/node.yaml:ro
+
+  node8:
+    build: .
+    command: ["noded", "-config", "/etc/aldea/node.yaml"]
+    depends_on:
+      tracker:
+        condition: service_healthy
+    volumes:
+      - node8-data:/data
+      - ./deploy/docker/node8.yaml:/etc/aldea/node.yaml:ro
+
+volumes:
+  tracker-data:
+  node1-data:
+  node2-data:
+  node3-data:
+  node4-data:
+  node5-data:
+  node6-data:
+  node7-data:
+  node8-data:

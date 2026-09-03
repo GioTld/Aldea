@@ -1,0 +1,6 @@
+node_id: "node-6"
+listen_addr: "node6:9001"
+data_dir: "/data"
+storage_allocated: 1073741824
+network_key: "aldea-p2p-mesh-secret-key-32b!"
+tracker_addr: "http://tracker:8080"
