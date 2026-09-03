@@ -145,6 +145,21 @@ func (s *Store) SaveFilePlacement(file FileMetadata, placements []ShardPlacement
 	})
 }
 
+func (s *Store) ListFiles() ([]FileMetadata, error) {
+	var files []FileMetadata
+	err := s.db.View(func(tx *bolt.Tx) error {
+		return tx.Bucket(bucketFiles).ForEach(func(_, v []byte) error {
+			var file FileMetadata
+			if err := json.Unmarshal(v, &file); err != nil {
+				return err
+			}
+			files = append(files, file)
+			return nil
+		})
+	})
+	return files, err
+}
+
 func (s *Store) GetFilePlacement(fileID string) (*FileMetadata, []ShardPlacement, error) {
 	var file FileMetadata
 	var placements []ShardPlacement
