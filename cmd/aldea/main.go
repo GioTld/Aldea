@@ -17,7 +17,7 @@ var root = &cobra.Command{
 func main() {
 	root.PersistentFlags().StringVar(&cfgPath, "config", "client.yaml", "path to client config file")
 
-	root.AddCommand(cmdInit, cmdPut, cmdGet, cmdStatus)
+	root.AddCommand(cmdInit, cmdPut, cmdGet, cmdStatus, NewComputeCmd())
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
