@@ -14,6 +14,8 @@ import (
 	"github.com/GioTld/aldea/internal/crypto"
 	"github.com/GioTld/aldea/internal/erasure"
 	"github.com/GioTld/aldea/internal/invite"
+	"github.com/GioTld/aldea/internal/metrics"
+	"github.com/GioTld/aldea/internal/runtime"
 )
 
 type NodeStatusDTO struct {
@@ -56,17 +58,19 @@ type NetworkMetricsDTO struct {
 }
 
 type App struct {
-	ctx          context.Context
-	dataDir      string
-	mu           sync.Mutex
-	configured   bool
-	paused       bool
-	nodeID       string
-	trackerAddr  string
-	networkKey   []byte
-	signingKey   []byte
-	storageAlloc int64
-	files        []FileDTO
+	ctx              context.Context
+	dataDir          string
+	mu               sync.Mutex
+	configured       bool
+	paused           bool
+	nodeID           string
+	trackerAddr      string
+	networkKey       []byte
+	signingKey       []byte
+	storageAlloc     int64
+	files            []FileDTO
+	runtimeEngine    *runtime.Engine
+	metricsCollector *metrics.Collector
 }
 
 func NewApp(dataDir string) *App {
@@ -79,11 +83,13 @@ func NewApp(dataDir string) *App {
 	_ = os.MkdirAll(filepath.Join(dataDir, "shards"), 0755)
 
 	return &App{
-		dataDir:      dataDir,
-		signingKey:   signingKey,
-		networkKey:   netKey,
-		storageAlloc: 5 * 1024 * 1024 * 1024, // Default 5 GB
-		files:        make([]FileDTO, 0),
+		dataDir:          dataDir,
+		signingKey:       signingKey,
+		networkKey:       netKey,
+		storageAlloc:     5 * 1024 * 1024 * 1024, // Default 5 GB
+		files:            make([]FileDTO, 0),
+		runtimeEngine:    runtime.NewEngine(),
+		metricsCollector: metrics.NewCollector(),
 	}
 }
 
@@ -169,7 +175,7 @@ func (a *App) GetNodeStatus() NodeStatusDTO {
 		TrackerAddr:      a.trackerAddr,
 		StorageAllocated: a.storageAlloc,
 		StorageUsed:      physicalUsed,
-		PeerCount:        4,
+		PeerCount:        0,
 		IsHealthy:        !a.paused,
 		StateLabel:       stateLabel,
 	}
@@ -194,11 +200,6 @@ func (a *App) ListFiles() []FileDTO {
 	return a.files
 }
 
-// UploadFile connects the Wails Desktop UI directly to production Go packages:
-// 1. Fixed-size chunking via internal/chunker.
-// 2. Reed-Solomon (k=4, m=4) encoding via internal/erasure.
-// 3. Client-side XChaCha20-Poly1305 + Argon2id encryption via internal/crypto.
-// 4. Physical shard writing to disk in dataDir/shards/.
 func (a *App) UploadFile(fileName string, size int64) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -241,13 +242,11 @@ func (a *App) UploadFile(fileName string, size int64) error {
 		}
 
 		for shardIdx, shard := range shards {
-			// Encrypt shard client-side with XChaCha20-Poly1305
 			encryptedShard, err := crypto.Encrypt(shard.Data, derivedKey)
 			if err != nil {
 				return fmt.Errorf("encrypting shard: %w", err)
 			}
 
-			// Write physical shard to disk
 			shardFileName := fmt.Sprintf("%s_c%d_s%d.shard", fileID, chunkIndex, shardIdx)
 			shardPath := filepath.Join(shardsDir, shardFileName)
 			if err := os.WriteFile(shardPath, encryptedShard, 0644); err != nil {
@@ -266,33 +265,56 @@ func (a *App) UploadFile(fileName string, size int64) error {
 	return nil
 }
 
+// GetComputeWorkloads connects Wails GUI directly to internal/runtime engine.
 func (a *App) GetComputeWorkloads() []ComputeWorkloadDTO {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	return []ComputeWorkloadDTO{
-		{
-			WorkloadID: "wl-web-caddy",
-			Name:       "frontend-ingress",
-			Image:      "caddy:alpine",
-			State:      "running",
-			IPAddress:  "10.244.0.12",
-		},
+	ctx := a.ctx
+	if ctx == nil {
+		ctx = context.Background()
 	}
+
+	containers, err := a.runtimeEngine.ListWorkloads(ctx)
+	if err != nil || len(containers) == 0 {
+		return make([]ComputeWorkloadDTO, 0)
+	}
+
+	res := make([]ComputeWorkloadDTO, 0, len(containers))
+	for _, c := range containers {
+		res = append(res, ComputeWorkloadDTO{
+			WorkloadID: c.WorkloadID,
+			Name:       c.Name,
+			Image:      c.Image,
+			State:      string(c.State),
+			IPAddress:  c.IPAddress,
+		})
+	}
+	return res
 }
 
 func (a *App) GetNetworkMetrics() NetworkMetricsDTO {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
+	snapshot := a.metricsCollector.GetSnapshot()
+
+	peers := make([]PeerMetricDTO, 0, len(snapshot.Peers))
+	for nodeID, p := range snapshot.Peers {
+		peers = append(peers, PeerMetricDTO{
+			NodeID:    nodeID,
+			OS:        "linux",
+			LatencyMs: p.LatencyMs,
+			IsHealthy: p.IsHealthy,
+		})
+	}
+
+	upSpeed := float64(snapshot.BytesSentTotal) / 1024.0
+	downSpeed := float64(snapshot.BytesReceivedTotal) / 1024.0
+
 	return NetworkMetricsDTO{
-		UploadSpeedKBps:   124.5,
-		DownloadSpeedKBps: 482.0,
-		Peers: []PeerMetricDTO{
-			{NodeID: "node-madrid-01", OS: "linux", LatencyMs: 24, IsHealthy: true},
-			{NodeID: "node-bogota-02", OS: "linux", LatencyMs: 45, IsHealthy: true},
-			{NodeID: "node-tokyo-03", OS: "linux", LatencyMs: 180, IsHealthy: true},
-			{NodeID: "node-miami-04", OS: "windows", LatencyMs: 38, IsHealthy: true},
-		},
+		UploadSpeedKBps:   upSpeed,
+		DownloadSpeedKBps: downSpeed,
+		Peers:             peers,
 	}
 }
