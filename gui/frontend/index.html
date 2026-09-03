@@ -41,6 +41,31 @@
         Configura tu nodo para unirte al grupo cerrado. Tus archivos son divididos en fragmentos (erasure coding 4+2) y cifrados con AES-256 antes de salir de este equipo.
       </p>
 
+      <!-- Plain Language Explanation Box (RNF-10) -->
+      <div class="explain-box">
+        <div class="explain-title">¿CÓMO FUNCIONA LA RED ALDEA? (SIN TECNICISMOS)</div>
+        <div class="explain-steps">
+          <div class="explain-step">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Cifrado Privado Local:</strong> Cada archivo se cifra en tu propio dispositivo antes de enviarlo. Nadie en la red (ni siquiera el coordinador) puede ver tu contenido.
+            </div>
+          </div>
+          <div class="explain-step">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Tolerancia 4+2 (Erasure Coding):</strong> Tu archivo se divide en 6 piezas. Con que solo 4 de los ordenadores de tu grupo estén encendidos, recuperas el 100% de tu archivo intacto.
+            </div>
+          </div>
+          <div class="explain-step">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Agente en Segundo Plano:</strong> Al cerrar esta ventana, el nodo sigue corriendo en la barra del sistema (System Tray), sirviendo fragmentos a tus amigos sin interrumpir tu trabajo.
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="init-grid">
         <div class="init-pane">
           <h3>[01] CREAR NUEVA RED</h3>
@@ -133,6 +158,15 @@
             <span class="card-title-sm">INVITAR NUEVO PAR</span>
           </div>
           <button class="btn btn-secondary btn-full" id="btnGenInvite">GENERAR TOKEN INVITACIÓN</button>
+        </section>
+
+        <!-- System Tray & Background Controls (RF-22) -->
+        <section class="card">
+          <div class="card-header">
+            <span class="card-title-sm">NODO EN SEGUNDO PLANO (TRAY)</span>
+          </div>
+          <p class="card-desc-sm">Al cerrar la ventana, el nodo permanece activo sirviendo fragmentos.</p>
+          <button class="btn btn-secondary btn-full" id="btnTogglePause">PAUSAR SERVICIO DE NODO</button>
         </section>
 
       </aside>
