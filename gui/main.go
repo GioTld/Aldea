@@ -29,20 +29,19 @@ func main() {
 
 	app := NewApp(appDataDir)
 
-	// Create System Tray Menu
-	trayMenu := menu.NewMenu()
-	trayMenu.AddText("Aldea Storage Node", nil, func(_ *menu.CallbackData) {})
-	trayMenu.AddSeparator()
-	trayMenu.AddText("Mostrar Interfaz", keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
+	// Create Application Menu
+	appMenu := menu.NewMenu()
+	aldeaMenu := appMenu.AddSubmenu("Aldea")
+	aldeaMenu.AddText("Mostrar Interfaz", keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
 		if app.ctx != nil {
 			wailsRuntime.WindowShow(app.ctx)
 		}
 	})
-	trayMenu.AddText("Pausar Servicio", nil, func(_ *menu.CallbackData) {
+	aldeaMenu.AddText("Pausar Servicio", nil, func(_ *menu.CallbackData) {
 		app.PauseNode(true)
 	})
-	trayMenu.AddSeparator()
-	trayMenu.AddText("Salir de Aldea", keys.CmdOrCtrl("q"), func(_ *menu.CallbackData) {
+	aldeaMenu.AddSeparator()
+	aldeaMenu.AddText("Salir de Aldea", keys.CmdOrCtrl("q"), func(_ *menu.CallbackData) {
 		if app.ctx != nil {
 			wailsRuntime.Quit(app.ctx)
 		} else {
@@ -60,7 +59,7 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 7, G: 9, B: 11, A: 255},
 		OnStartup:        app.startup,
-		Menu:             trayMenu,
+		Menu:             appMenu,
 		Linux: &linux.Options{
 			Icon: icon,
 		},
