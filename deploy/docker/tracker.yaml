@@ -1,0 +1,3 @@
+listen_addr: "0.0.0.0:8080"
+db_path: "/data/tracker.db"
+network_key: "aldea-p2p-mesh-secret-key-32b!"
