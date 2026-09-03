@@ -244,6 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.downloadFile = function(fileID) {
-    alert(`Descargando archivo [${fileID}] y reconstruyendo desde fragmentos 4+2...`);
+    alert(`Descargando archivo [${fileID}] y reconstruyendo desde fragmentos 4+4...`);
   };
 });

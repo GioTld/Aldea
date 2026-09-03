@@ -222,6 +222,37 @@
           </div>
         </div>
 
+        <!-- Compute Workloads Data Table -->
+        <div class="card compute-box" style="margin-top: 16px;">
+          <div class="card-header">
+            <span class="card-title-sm">CARGAS DE CÓMPUTO EN EJECUCIÓN (PARES LINUX)</span>
+            <span class="badge badge-mono" id="computeCountBadge">1 CARGA ACTIVA</span>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>WORKLOAD ID</th>
+                  <th>NOMBRE</th>
+                  <th>IMAGEN OCI</th>
+                  <th>ESTADO</th>
+                  <th>IP ASIGNADA</th>
+                </tr>
+              </thead>
+              <tbody id="computeTableBody">
+                <tr>
+                  <td class="mono">wl-web-caddy</td>
+                  <td>frontend-ingress</td>
+                  <td class="mono">caddy:alpine</td>
+                  <td><span class="badge badge-emerald">RUNNING</span></td>
+                  <td class="mono">10.244.0.12</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </section>
 
     </main>

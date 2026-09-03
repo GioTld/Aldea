@@ -28,6 +28,14 @@ type FileDTO struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
+type ComputeWorkloadDTO struct {
+	WorkloadID string `json:"workload_id"`
+	Name       string `json:"name"`
+	Image      string `json:"image"`
+	State      string `json:"state"`
+	IPAddress  string `json:"ip_address"`
+}
+
 type App struct {
 	ctx          context.Context
 	dataDir      string
@@ -165,4 +173,19 @@ func (a *App) UploadFile(fileName string, size int64) error {
 	})
 	a.storageUsed += size / 4 // mock local shard footprint
 	return nil
+}
+
+func (a *App) GetComputeWorkloads() []ComputeWorkloadDTO {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	return []ComputeWorkloadDTO{
+		{
+			WorkloadID: "wl-web-caddy",
+			Name:       "frontend-ingress",
+			Image:      "caddy:alpine",
+			State:      "running",
+			IPAddress:  "10.244.0.12",
+		},
+	}
 }
