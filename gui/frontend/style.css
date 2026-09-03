@@ -590,3 +590,142 @@ input[type="range"] {
 .hidden {
   display: none !important;
 }
+
+/* Header Right & Search Inputs */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-sm {
+  padding: 4px 8px;
+  font-size: 10px;
+  width: 160px;
+}
+
+/* Nav Tabs */
+.nav-tabs-card {
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-tab {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-tab:hover {
+  color: var(--text-bright);
+  background: var(--surface-light);
+}
+
+.nav-tab.active {
+  color: var(--emerald);
+  background: var(--emerald-dim);
+  border-color: rgba(0, 229, 163, 0.3);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.metric-card {
+  padding: 16px;
+}
+
+.metric-card-header {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.metric-card-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--emerald);
+}
+
+/* Deploy Modal & Banners */
+.warning-banner {
+  background: rgba(255, 179, 0, 0.1);
+  border: 1px solid rgba(255, 179, 0, 0.3);
+  color: #ffb300;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 12px;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+.textarea-code {
+  width: 100%;
+  resize: vertical;
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text-bright);
+  padding: 10px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Toast Notification Container */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 10px 16px;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastIn 0.2s ease-out;
+}
+
+.toast-success {
+  border-left: 3px solid var(--emerald);
+}
+
+.toast-error {
+  border-left: 3px solid #ff4a4a;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

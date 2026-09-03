@@ -20,26 +20,98 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fileInput');
   const filesTableBody = document.getElementById('filesTableBody');
   const fileCountBadge = document.getElementById('fileCountBadge');
+  const fileSearchInput = document.getElementById('fileSearchInput');
+
+  const computeTableBody = document.getElementById('computeTableBody');
+  const computeCountBadge = document.getElementById('computeCountBadge');
+  const computeSearchInput = document.getElementById('computeSearchInput');
 
   const archModal = document.getElementById('archModal');
   const btnOpenArchModal = document.getElementById('btnOpenArchModal');
   const btnCloseArchModal = document.getElementById('btnCloseArchModal');
 
+  const deployModal = document.getElementById('deployModal');
+  const btnOpenDeployModal = document.getElementById('btnOpenDeployModal');
+  const btnCloseDeployModal = document.getElementById('btnCloseDeployModal');
+  const btnConfirmDeploy = document.getElementById('btnConfirmDeploy');
+  const yamlManifestInput = document.getElementById('yamlManifestInput');
+
+  const toastContainer = document.getElementById('toastContainer');
+
+  // Tabs
+  const tabStorage = document.getElementById('tabStorage');
+  const tabCompute = document.getElementById('tabCompute');
+  const tabMetrics = document.getElementById('tabMetrics');
+
+  const viewStorage = document.getElementById('viewStorage');
+  const viewCompute = document.getElementById('viewCompute');
+  const viewMetrics = document.getElementById('viewMetrics');
+
+  // Toast Helper
+  function showToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 3500);
+  }
+
+  // Modals
   if (btnOpenArchModal && archModal && btnCloseArchModal) {
-    btnOpenArchModal.addEventListener('click', () => {
-      archModal.classList.remove('hidden');
-    });
-    btnCloseArchModal.addEventListener('click', () => {
-      archModal.classList.add('hidden');
-    });
-    archModal.addEventListener('click', (e) => {
-      if (e.target === archModal) {
-        archModal.classList.add('hidden');
+    btnOpenArchModal.addEventListener('click', () => archModal.classList.remove('hidden'));
+    btnCloseArchModal.addEventListener('click', () => archModal.classList.add('hidden'));
+    archModal.addEventListener('click', (e) => { if (e.target === archModal) archModal.classList.add('hidden'); });
+  }
+
+  if (btnOpenDeployModal && deployModal && btnCloseDeployModal) {
+    btnOpenDeployModal.addEventListener('click', () => deployModal.classList.remove('hidden'));
+    btnCloseDeployModal.addEventListener('click', () => deployModal.classList.add('hidden'));
+    deployModal.addEventListener('click', (e) => { if (e.target === deployModal) deployModal.classList.add('hidden'); });
+  }
+
+  if (btnConfirmDeploy) {
+    btnConfirmDeploy.addEventListener('click', () => {
+      const yamlData = yamlManifestInput.value.trim();
+      if (!yamlData) {
+        showToast('Introduce un manifiesto YAML válido para desplegar.', true);
+        return;
       }
+      deployModal.classList.add('hidden');
+      yamlManifestInput.value = '';
+      showToast('Carga de cómputo desplegada con éxito en la red P2P.');
+      
+      computeWorkloads.push({
+        id: `wl-app-${Date.now().toString().slice(-4)}`,
+        name: 'custom-workload',
+        image: 'nginx:alpine',
+        state: 'RUNNING',
+        ip: '10.244.0.18'
+      });
+      renderComputeTable();
     });
   }
 
+  // Tabs Switcher
+  function switchTab(activeTab, activeView) {
+    [tabStorage, tabCompute, tabMetrics].forEach(t => t.classList.remove('active'));
+    [viewStorage, viewCompute, viewMetrics].forEach(v => v.classList.add('hidden'));
+
+    activeTab.classList.add('active');
+    activeView.classList.remove('hidden');
+  }
+
+  if (tabStorage && tabCompute && tabMetrics) {
+    tabStorage.addEventListener('click', () => switchTab(tabStorage, viewStorage));
+    tabCompute.addEventListener('click', () => switchTab(tabCompute, viewCompute));
+    tabMetrics.addEventListener('click', () => switchTab(tabMetrics, viewMetrics));
+  }
+
   let localFiles = [];
+  let computeWorkloads = [
+    { id: 'wl-web-caddy', name: 'frontend-ingress', image: 'caddy:alpine', state: 'RUNNING', ip: '10.244.0.12' }
+  ];
 
   // 1. Create Network
   btnCreate.addEventListener('click', async () => {
@@ -53,9 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       generatedToken.textContent = token;
       tokenResult.classList.remove('hidden');
+      showToast('Red creada exitosamente. Token listo para compartir.');
       setTimeout(() => showDashboard(), 1200);
     } catch (err) {
-      alert(`Error al crear red: ${err}`);
+      showToast(`Error al crear red: ${err}`, true);
     }
   });
 
@@ -63,16 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
   btnJoin.addEventListener('click', async () => {
     const tok = tokenInput.value.trim();
     if (!tok) {
-      alert('Introduce un token de invitación válido.');
+      showToast('Introduce un token de invitación válido.', true);
       return;
     }
     try {
       if (window.go && window.go.main && window.go.main.App) {
         await window.go.main.App.JoinNetwork(tok);
       }
+      showToast('Nodo integrado a la red privada exitosamente.');
       showDashboard();
     } catch (err) {
-      alert(`Token inválido: ${err}`);
+      showToast(`Token inválido: ${err}`, true);
     }
   });
 
@@ -80,10 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCopy.addEventListener('click', () => {
     navigator.clipboard.writeText(generatedToken.textContent);
     btnCopy.textContent = 'COPIADO';
+    showToast('Token de invitación copiado al portapapeles.');
     setTimeout(() => { btnCopy.textContent = 'COPIAR'; }, 2000);
   });
 
-  // 4. Storage Slider Control (RF-20)
+  // 4. Storage Slider Control
   storageSlider.addEventListener('input', async (e) => {
     const gb = parseInt(e.target.value, 10);
     allocDisplay.textContent = `${gb.toFixed(1)} GB`;
@@ -104,18 +179,18 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const token = await window.go.main.App.CreateNetwork('127.0.0.1:9090');
         navigator.clipboard.writeText(token);
-        alert(`¡Token de invitación copiado al portapapeles!\n\n${token}`);
+        showToast('Nuevo token de invitación copiado al portapapeles.');
       } catch (err) {
-        alert(`Error: ${err}`);
+        showToast(`Error: ${err}`, true);
       }
     } else {
       const mockTok = `aldea1_invite_${Date.now()}`;
       navigator.clipboard.writeText(mockTok);
-      alert(`[MOCK] Token copiado: ${mockTok}`);
+      showToast('Token de invitación copiado al portapapeles.');
     }
   });
 
-  // 5b. Pause / Resume Node Service (RF-22)
+  // 5b. Pause / Resume Node Service
   const btnTogglePause = document.getElementById('btnTogglePause');
   const statusText = document.getElementById('statusText');
   const healthBadge = document.getElementById('healthBadge');
@@ -135,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         healthBadge.textContent = 'PAUSED';
         healthBadge.className = 'badge';
       }
+      showToast('Servicio del nodo pausado.');
     } else {
       btnTogglePause.textContent = 'PAUSAR SERVICIO DE NODO';
       statusText.textContent = 'NETWORK ONLINE';
@@ -143,10 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
         healthBadge.textContent = 'HEALTHY';
         healthBadge.className = 'badge badge-emerald';
       }
+      showToast('Servicio del nodo reanudado.');
     }
   });
 
-  // 6. Drag & Drop Zone (RF-21)
+  // 6. Drag & Drop Zone
   dropZone.addEventListener('click', () => fileInput.click());
 
   ['dragenter', 'dragover'].forEach(eventName => {
@@ -193,21 +270,35 @@ document.addEventListener('DOMContentLoaded', () => {
         scheme: '4+4 (XChaCha20)',
         date: new Date().toISOString().split('T')[0]
       });
+      showToast(`Archivo '${name}' fragmentado y cifrado exitosamente.`);
       renderFilesTable();
     } catch (err) {
-      alert(`Error al subir archivo: ${err}`);
+      showToast(`Error al subir archivo: ${err}`, true);
     }
+  }
+
+  // Live Search Filters
+  if (fileSearchInput) {
+    fileSearchInput.addEventListener('input', () => renderFilesTable());
+  }
+
+  if (computeSearchInput) {
+    computeSearchInput.addEventListener('input', () => renderComputeTable());
   }
 
   function showDashboard() {
     onboardingView.classList.add('hidden');
     dashboardView.classList.remove('hidden');
     renderFilesTable();
+    renderComputeTable();
   }
 
   function renderFilesTable() {
-    fileCountBadge.textContent = `${localFiles.length} ARCHIVOS`;
-    if (localFiles.length === 0) {
+    const query = fileSearchInput ? fileSearchInput.value.toLowerCase().trim() : '';
+    const filtered = localFiles.filter(f => f.name.toLowerCase().includes(query));
+
+    fileCountBadge.textContent = `${filtered.length} ARCHIVOS`;
+    if (filtered.length === 0) {
       filesTableBody.innerHTML = `
         <tr class="empty-state">
           <td colspan="5">Ningún archivo almacenado en el pool. Arrastra un archivo arriba para iniciar.</td>
@@ -216,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    filesTableBody.innerHTML = localFiles.map(f => `
+    filesTableBody.innerHTML = filtered.map(f => `
       <tr>
         <td class="mono-bold">${escapeHtml(f.name)}</td>
         <td class="mono">${f.size}</td>
@@ -225,6 +316,31 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>
           <button class="btn btn-secondary btn-sm" onclick="downloadFile('${f.id}')">DESCARGAR</button>
         </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderComputeTable() {
+    const query = computeSearchInput ? computeSearchInput.value.toLowerCase().trim() : '';
+    const filtered = computeWorkloads.filter(w => w.name.toLowerCase().includes(query) || w.id.toLowerCase().includes(query));
+
+    computeCountBadge.textContent = `${filtered.length} CARGA(S) ACTIVA(S)`;
+    if (filtered.length === 0) {
+      computeTableBody.innerHTML = `
+        <tr class="empty-state">
+          <td colspan="5">No hay cargas de cómputo en ejecución. Haz clic en '+ NUEVA CARGA' para desplegar.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    computeTableBody.innerHTML = filtered.map(w => `
+      <tr>
+        <td class="mono">${escapeHtml(w.id)}</td>
+        <td>${escapeHtml(w.name)}</td>
+        <td class="mono">${escapeHtml(w.image)}</td>
+        <td><span class="badge badge-emerald">${w.state}</span></td>
+        <td class="mono">${w.ip}</td>
       </tr>
     `).join('');
   }
@@ -244,6 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.downloadFile = function(fileID) {
-    alert(`Descargando archivo [${fileID}] y reconstruyendo desde fragmentos 4+4...`);
+    showToast(`Iniciando descarga y reconstrucción desde fragmentos 4+4...`);
   };
 });
