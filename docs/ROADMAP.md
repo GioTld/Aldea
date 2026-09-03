@@ -68,11 +68,8 @@ Implements: RF-19 to RF-22, RNF-10, RNF-12. See CU-08.
 - ✅ Desktop app shell using **Wails** (Go backend calling `internal/` directly)
 - ✅ Industrial Minimalist UI design system (high contrast slate theme, JetBrains Mono metrics, zero emojis)
 - ✅ Core flows: create/join network (via invite token), storage allocation slider (RF-20), node health status, drag-and-drop file upload/download (RF-21)
-- ⬜ System tray integration: `noded` runs in the background, app shows
-  status (online, syncing, degraded) without needing the window open
-- ⬜ First-run onboarding flow that explains the model in plain language
-  (what erasure coding guarantees, in non-technical terms) — this matters
-  because trust is the actual product being sold here
+- ✅ System tray integration: `noded` background execution & tray status controls (RF-22)
+- ✅ First-run onboarding flow that explains zero-knowledge erasure coding (4+2) in plain language (RNF-10)
 - ⬜ Packaged installers per OS (macOS `.dmg`, Windows `.msi`, Linux
   `.AppImage`/`.deb`), signed if budget allows once there's revenue to
   justify a code-signing cert

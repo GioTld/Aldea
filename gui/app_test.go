@@ -42,4 +42,19 @@ func TestAppBackend(t *testing.T) {
 		status := app.GetNodeStatus()
 		assert.Equal(t, newAlloc, status.StorageAllocated)
 	})
+
+	t.Run("PauseNode toggles node operational state", func(t *testing.T) {
+		token, err := app.CreateNetwork("127.0.0.1:9090")
+		require.NoError(t, err)
+		require.NoError(t, app.JoinNetwork(token))
+
+		assert.False(t, app.IsPaused())
+		app.PauseNode(true)
+		assert.True(t, app.IsPaused())
+		status := app.GetNodeStatus()
+		assert.Equal(t, "PAUSED", status.StateLabel)
+
+		app.PauseNode(false)
+		assert.False(t, app.IsPaused())
+	})
 }

@@ -97,6 +97,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 5b. Pause / Resume Node Service (RF-22)
+  const btnTogglePause = document.getElementById('btnTogglePause');
+  const statusText = document.getElementById('statusText');
+  const healthBadge = document.getElementById('healthBadge');
+  let isNodePaused = false;
+
+  btnTogglePause.addEventListener('click', async () => {
+    isNodePaused = !isNodePaused;
+    if (window.go && window.go.main && window.go.main.App) {
+      await window.go.main.App.PauseNode(isNodePaused);
+    }
+
+    if (isNodePaused) {
+      btnTogglePause.textContent = 'REANUDAR SERVICIO DE NODO';
+      statusText.textContent = 'NETWORK PAUSED';
+      statusText.style.color = '#eab308';
+      if (healthBadge) {
+        healthBadge.textContent = 'PAUSED';
+        healthBadge.className = 'badge';
+      }
+    } else {
+      btnTogglePause.textContent = 'PAUSAR SERVICIO DE NODO';
+      statusText.textContent = 'NETWORK ONLINE';
+      statusText.style.color = 'var(--emerald)';
+      if (healthBadge) {
+        healthBadge.textContent = 'HEALTHY';
+        healthBadge.className = 'badge badge-emerald';
+      }
+    }
+  });
+
   // 6. Drag & Drop Zone (RF-21)
   dropZone.addEventListener('click', () => fileInput.click());
 

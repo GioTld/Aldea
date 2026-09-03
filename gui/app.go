@@ -18,6 +18,7 @@ type NodeStatusDTO struct {
 	StorageUsed      int64  `json:"storage_used"`
 	PeerCount        int    `json:"peer_count"`
 	IsHealthy        bool   `json:"is_healthy"`
+	StateLabel       string `json:"state_label"`
 }
 
 type FileDTO struct {
@@ -32,6 +33,7 @@ type App struct {
 	dataDir      string
 	mu           sync.Mutex
 	configured   bool
+	paused       bool
 	nodeID       string
 	trackerAddr  string
 	networkKey   []byte
@@ -98,9 +100,26 @@ func (a *App) JoinNetwork(inviteTokenStr string) error {
 	return nil
 }
 
+func (a *App) IsPaused() bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.paused
+}
+
+func (a *App) PauseNode(paused bool) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.paused = paused
+}
+
 func (a *App) GetNodeStatus() NodeStatusDTO {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+
+	stateLabel := "ONLINE"
+	if a.paused {
+		stateLabel = "PAUSED"
+	}
 
 	return NodeStatusDTO{
 		Configured:       a.configured,
@@ -109,7 +128,8 @@ func (a *App) GetNodeStatus() NodeStatusDTO {
 		StorageAllocated: a.storageAlloc,
 		StorageUsed:      a.storageUsed,
 		PeerCount:        4,
-		IsHealthy:        true,
+		IsHealthy:        !a.paused,
+		StateLabel:       stateLabel,
 	}
 }
 
