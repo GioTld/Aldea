@@ -63,7 +63,7 @@ func TestTrackerStore(t *testing.T) {
 
 		unique := make(map[string]bool)
 		for _, n := range selected {
-			unique[n] = true
+			unique[n.NodeID] = true
 		}
 		assert.Len(t, unique, 4)
 	})
