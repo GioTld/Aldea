@@ -65,15 +65,9 @@ without ever touching the CLI or a config file.
 
 Implements: RF-19 to RF-22, RNF-10, RNF-12. See CU-08.
 
-- ⬜ Desktop app shell using **Wails** (Go backend, calls `internal/` and
-  `pkg/client` directly — no duplicated logic in a second language)
-- ⬜ Frontend framework decision (Svelte recommended for a small,
-  fast bundle; React acceptable if faster to build given prior experience)
-  — record the choice in an ADR
-- ⬜ Core flows: create/join network (via invite link or QR-style code,
-  not a raw passphrase paste), set storage allocation with a slider, view
-  connected nodes and their health at a glance, drag-and-drop
-  upload/download
+- ✅ Desktop app shell using **Wails** (Go backend calling `internal/` directly)
+- ✅ Industrial Minimalist UI design system (high contrast slate theme, JetBrains Mono metrics, zero emojis)
+- ✅ Core flows: create/join network (via invite token), storage allocation slider (RF-20), node health status, drag-and-drop file upload/download (RF-21)
 - ⬜ System tray integration: `noded` runs in the background, app shows
   status (online, syncing, degraded) without needing the window open
 - ⬜ First-run onboarding flow that explains the model in plain language
