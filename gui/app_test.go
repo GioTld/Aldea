@@ -57,4 +57,10 @@ func TestAppBackend(t *testing.T) {
 		app.PauseNode(false)
 		assert.False(t, app.IsPaused())
 	})
+
+	t.Run("GetComputeWorkloads returns workload list", func(t *testing.T) {
+		workloads := app.GetComputeWorkloads()
+		assert.NotEmpty(t, workloads)
+		assert.Equal(t, "wl-web-caddy", workloads[0].WorkloadID)
+	})
 }
