@@ -7,7 +7,10 @@ import (
 	"sync"
 )
 
-var ErrNoEligibleComputeNode = errors.New("no eligible healthy compute node found for workload placement")
+var (
+	ErrNoEligibleComputeNode  = errors.New("no eligible healthy compute node found for workload placement")
+	ErrStatefulWorkloadPinned = errors.New("stateful workloads are pinned to their assigned node and cannot auto-reschedule (RF-29)")
+)
 
 type NodeComputeCapability struct {
 	NodeID            string  `json:"node_id"`
@@ -96,4 +99,22 @@ func (s *Scheduler) SelectNode(manifest WorkloadManifest, candidates []NodeCompu
 	}
 
 	return bestNode, nil
+}
+
+// RescheduleOnNodeFailure automatically selects a replacement compute node for stateless workloads (RF-28, RF-32).
+// Stateful workloads are explicitly rejected per RF-29 (pinned to their assigned node).
+func (s *Scheduler) RescheduleOnNodeFailure(manifest WorkloadManifest, deadNodeID string, candidates []NodeComputeCapability) (*NodeComputeCapability, error) {
+	if manifest.Type == WorkloadStateful {
+		return nil, ErrStatefulWorkloadPinned
+	}
+
+	// Filter out the failed node from candidates
+	filtered := make([]NodeComputeCapability, 0, len(candidates))
+	for _, c := range candidates {
+		if c.NodeID != deadNodeID {
+			filtered = append(filtered, c)
+		}
+	}
+
+	return s.SelectNode(manifest, filtered)
 }
