@@ -18,6 +18,8 @@ const (
 	TypeGetShardResponse
 	TypeHealthReportRequest
 	TypeHealthReportResponse
+	TypeRelaySessionRequest
+	TypeRelaySessionResponse
 )
 
 var (
@@ -56,6 +58,17 @@ type HealthReportResponse struct {
 	StorageUsed      int64  `json:"storage_used"`
 	StorageAllocated int64  `json:"storage_allocated"`
 	IsHealthy        bool   `json:"is_healthy"`
+}
+
+type RelaySessionRequest struct {
+	SessionID    string `json:"session_id"`
+	TargetNodeID string `json:"target_node_id"`
+}
+
+type RelaySessionResponse struct {
+	SessionID string `json:"session_id"`
+	Success   bool   `json:"success"`
+	Error     string `json:"error,omitempty"`
 }
 
 type MessageEnvelope struct {
