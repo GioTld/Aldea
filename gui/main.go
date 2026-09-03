@@ -31,7 +31,7 @@ func main() {
 
 	// Create System Tray Menu
 	trayMenu := menu.NewMenu()
-	trayMenu.AddText("Aldea Storage Node", nil, nil)
+	trayMenu.AddText("Aldea Storage Node", nil, func(_ *menu.CallbackData) {})
 	trayMenu.AddSeparator()
 	trayMenu.AddText("Mostrar Interfaz", keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
 		if app.ctx != nil {
