@@ -1,0 +1,10 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "aldea",
+  "outputfilename": "aldea-desktop",
+  "frontend:dir": "gui/frontend",
+  "author": {
+    "name": "Aldea Network Project",
+    "email": "dev@aldea.network"
+  }
+}

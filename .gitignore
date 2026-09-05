@@ -23,9 +23,9 @@ go.work.sum
 *.tmp
 *.log
 
-# Ignore all markdown documentation except README.md and ADRs
+# Ignore all markdown documentation except README.md
 *.md
 **/*.md
 !README.md
 !**/README.md
-!docs/adr/*.md
+

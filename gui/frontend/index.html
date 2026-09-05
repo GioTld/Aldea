@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aldea — P2P Distributed Storage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="shell">
+    
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-logo" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span class="brand-name">ALDEA</span>
+        <span class="badge badge-mono">PHASE-3 GUI</span>
+      </div>
+
+      <div class="topbar-status">
+        <button class="btn btn-secondary btn-sm" id="btnOpenArchModal">ESPECIFICACIONES ARQUITECTURA</button>
+        <span class="status-indicator">
+          <span class="dot dot-active"></span>
+          <span class="status-label" id="statusText">NETWORK ONLINE</span>
+        </span>
+        <span class="stat-tag" id="peerCountTag">PEERS: 4</span>
+      </div>
+    </header>
+
+    <!-- Architecture Specification Modal (Separate Section, Professional Tone) -->
+    <div class="modal-overlay hidden" id="archModal">
+      <div class="modal-card">
+        <div class="card-header">
+          <span class="card-title">GARANTÍAS Y ESPECIFICACIONES DE ARQUITECTURA</span>
+          <button class="btn-close" id="btnCloseArchModal">&times;</button>
+        </div>
+        
+        <div class="arch-spec-list">
+          <div class="arch-spec-item">
+            <div class="spec-header mono">01. CIFRADO CLIENT-SIDE DE CERO CONOCIMIENTO</div>
+            <p class="spec-body">
+              Toda información introducida en la red se fragmenta y cifra localmente mediante algoritmos XChaCha20-Poly1305 antes de iniciar cualquier transmisión. Las claves criptográficas son derivadas exclusivamente en el cliente emisor mediante Argon2id. Ni los nodos de almacenamiento pares ni la infraestructura de coordinación centralizada poseen acceso al contenido en texto plano.
+            </p>
+          </div>
+
+          <div class="arch-spec-item">
+            <div class="spec-header mono">02. MATRIZ REDUNDANTE DE CODIFICACIÓN DE BORRADO (4+4)</div>
+            <p class="spec-body">
+              La distribución de bloques emplea matrices de dispersión Reed-Solomon configuradas en relación 4 fragmentos de datos y 4 de paridad (8 bloques totales). El sistema garantiza la integridad operacional y la reconstrucción determinista del volumen siempre que un mínimo de 4 nodos dentro del clúster permanezcan en estado alcanzable.
+            </p>
+          </div>
+
+          <div class="arch-spec-item">
+            <div class="spec-header mono">03. EJECUCIÓN PERSISTENTE EN SEGUNDO PLANO</div>
+            <p class="spec-body">
+              El demonio de almacenamiento local opera de manera asíncrona integrado con la bandeja del sistema anfitrión. Gestiona el ciclo de vida de los fragmentos asignados y responde a solicitudes de verificación de salud manteniendo un consumo de recursos acotado y sin requerir la presencia de la interfaz gráfica.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarding Panel (Shown if network not created/joined) -->
+    <section class="card onboarding-box" id="onboardingView">
+      <div class="card-header">
+        <h2 class="card-title">INICIALIZAR NODO DE ALMACENAMIENTO</h2>
+        <span class="badge badge-mono">ZERO-KNOWLEDGE STORAGE</span>
+      </div>
+      <p class="card-desc">
+        Configura tu nodo local para integrarte a la red distribuida. Asigna espacio de almacenamiento o únete a un clúster privado mediante un token firmado.
+      </p>
+
+      <div class="init-grid">
+        <div class="init-pane">
+          <h3>[01] CREAR NUEVA RED</h3>
+          <p>Genera la clave de red y los tokens de invitación para tus pares.</p>
+          <div class="input-stack">
+            <label class="field-label">DIRECCIÓN TRACKER DE COORDINACIÓN</label>
+            <input type="text" id="trackerInput" class="input-mono" value="127.0.0.1:9090" />
+            <button class="btn btn-primary" id="btnCreate">CREAR RED & TOKEN</button>
+          </div>
+        </div>
+
+        <div class="init-pane">
+          <h3>[02] UNIRSE A RED EXISTENTE</h3>
+          <p>Introduce un token de invitación firmado generado por un miembro.</p>
+          <div class="input-stack">
+            <label class="field-label">TOKEN DE INVITACIÓN (aldea1_...)</label>
+            <input type="text" id="tokenInput" class="input-mono" placeholder="aldea1_..." />
+            <button class="btn btn-secondary" id="btnJoin">UNIRSE A RED</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="token-alert hidden" id="tokenResult">
+        <div class="alert-header">
+          <span class="mono-bold">TOKEN DE INVITACIÓN GENERADO</span>
+          <span class="badge">VÁLIDO 24H</span>
+        </div>
+        <div class="token-row">
+          <code id="generatedToken" class="code-block"></code>
+          <button class="btn btn-sm" id="btnCopy">COPIAR</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Balanced Dashboard (Left: Node Config / Right: File Storage) -->
+    <main class="dashboard-grid hidden" id="dashboardView">
+      
+      <!-- Left Sidebar: Node Metrics & Controls -->
+      <aside class="sidebar-col">
+        
+        <!-- Node Info Card -->
+        <section class="card">
+          <div class="card-header">
+            <span class="card-title-sm">ESTADO DEL NODO LOCAL</span>
+            <span class="badge badge-emerald" id="healthBadge">HEALTHY</span>
+          </div>
+          <div class="metric-group">
+            <div class="metric-row">
+              <span class="metric-key">NODE ID</span>
+              <span class="metric-val mono" id="nodeIdVal">node-gui-local</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">TRACKER</span>
+              <span class="metric-val mono" id="trackerVal">127.0.0.1:9090</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">CIFRADO</span>
+              <span class="metric-val mono">ARGON2ID + CHACHA20</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Storage Allocation Slider Card (RF-20) -->
+        <section class="card">
+          <div class="card-header">
+            <span class="card-title-sm">ASIGNACIÓN DE DISCO</span>
+            <span class="metric-val-bold mono" id="allocDisplay">5.0 GB</span>
+          </div>
+          <p class="card-desc-sm">Espacio de almacenamiento local dedicado a la red.</p>
+          
+          <div class="slider-container">
+            <input type="range" id="storageSlider" min="1" max="200" value="5" step="1">
+            <div class="slider-ticks mono">
+              <span>1 GB</span>
+              <span>50 GB</span>
+              <span>100 GB</span>
+              <span>200 GB</span>
+            </div>
+          </div>
+
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="usageBar" style="width: 12%;"></div>
+          </div>
+          <div class="metric-sub mono">USADO: <span id="usedDisplay">0 B</span> / ASIGNADO</div>
+        </section>
+
+        <!-- Network Invite Section -->
+        <section class="card">
+          <div class="card-header">
+            <span class="card-title-sm">INVITAR NUEVO PAR</span>
+          </div>
+          <button class="btn btn-secondary btn-full" id="btnGenInvite">GENERAR TOKEN INVITACIÓN</button>
+        </section>
+
+        <!-- System Tray & Background Controls (RF-22) -->
+        <section class="card">
+          <div class="card-header">
+            <span class="card-title-sm">NODO EN SEGUNDO PLANO (TRAY)</span>
+          </div>
+          <p class="card-desc-sm">Al cerrar la ventana, el nodo permanece activo sirviendo fragmentos.</p>
+          <button class="btn btn-secondary btn-full" id="btnTogglePause">PAUSAR SERVICIO DE NODO</button>
+        </section>
+
+      </aside>
+
+      <!-- Right Main Area: Files, Compute & Metrics -->
+      <section class="main-col">
+        
+        <!-- Tab Navigation Bar -->
+        <div class="card nav-tabs-card">
+          <div class="nav-tabs">
+            <button class="nav-tab active" id="tabStorage">ALMACENAMIENTO</button>
+            <button class="nav-tab" id="tabCompute">CÓMPUTO P2P</button>
+            <button class="nav-tab" id="tabMetrics">MÉTRICAS DE RED</button>
+          </div>
+        </div>
+
+        <!-- TAB 1: STORAGE VIEW -->
+        <div id="viewStorage" class="tab-pane">
+          <!-- Drag & Drop Zone -->
+          <div class="card upload-box">
+            <div class="drop-target" id="dropZone">
+              <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              <div class="drop-text-primary">ARRASTRA Y SUELTA ARCHIVOS AQUÍ</div>
+              <div class="drop-text-sub">o haz clic para explorar tu sistema de archivos local</div>
+              <input type="file" id="fileInput" class="hidden" />
+            </div>
+          </div>
+
+          <!-- Files Data Table with Search -->
+          <div class="card files-box">
+            <div class="card-header">
+              <span class="card-title-sm">ARCHIVOS EN LA RED (DISPERSOS & CIFRADOS)</span>
+              <div class="header-right">
+                <input type="text" id="fileSearchInput" class="input-mono input-sm" placeholder="FILTRAR ARCHIVOS..." />
+                <span class="badge badge-mono" id="fileCountBadge">0 ARCHIVOS</span>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>NOMBRE DEL ARCHIVO</th>
+                    <th>TAMAÑO</th>
+                    <th>ESQUEMA</th>
+                    <th>FECHA</th>
+                    <th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody id="filesTableBody">
+                  <tr class="empty-state">
+                    <td colspan="5">Ningún archivo almacenado en el pool. Arrastra un archivo arriba para iniciar.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: COMPUTE VIEW -->
+        <div id="viewCompute" class="tab-pane hidden">
+          <div class="card compute-box">
+            <div class="card-header">
+              <span class="card-title-sm">CARGAS DE CÓMPUTO EN EJECUCIÓN (PARES LINUX)</span>
+              <div class="header-right">
+                <input type="text" id="computeSearchInput" class="input-mono input-sm" placeholder="FILTRAR CARGAS..." />
+                <button class="btn btn-primary btn-sm" id="btnOpenDeployModal">+ NUEVA CARGA</button>
+                <span class="badge badge-mono" id="computeCountBadge">0 CARGAS ACTIVAS</span>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>WORKLOAD ID</th>
+                    <th>NOMBRE</th>
+                    <th>IMAGEN OCI</th>
+                    <th>ESTADO</th>
+                    <th>IP ASIGNADA</th>
+                  </tr>
+                </thead>
+                <tbody id="computeTableBody">
+                  <tr class="empty-state">
+                    <td colspan="5">No hay cargas de cómputo en ejecución. Haz clic en '+ NUEVA CARGA' para desplegar.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: METRICS VIEW -->
+        <div id="viewMetrics" class="tab-pane hidden">
+          <div class="metrics-grid">
+            <div class="card metric-card">
+              <div class="metric-card-header mono">TASA DE TRANSFERENCIA (SUBIDA)</div>
+              <div class="metric-card-value mono" id="speedUploadVal">0.0 KB/s</div>
+            </div>
+            <div class="card metric-card">
+              <div class="metric-card-header mono">TASA DE TRANSFERENCIA (BAJADA)</div>
+              <div class="metric-card-value mono" id="speedDownloadVal">0.0 KB/s</div>
+            </div>
+          </div>
+
+          <div class="card peers-box" style="margin-top: 16px;">
+            <div class="card-header">
+              <span class="card-title-sm">ESTADO Y LATENCIA DE NODOS PARES</span>
+              <span class="badge badge-mono">HEALTH MONITOR</span>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID DEL NODO</th>
+                    <th>SISTEMA OPERATIVO</th>
+                    <th>LATENCIA</th>
+                    <th>ESTADO</th>
+                  </tr>
+                </thead>
+                <tbody id="peersTableBody">
+                  <tr class="empty-state">
+                    <td colspan="4">No hay nodos pares conectados actualmente.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Deploy Workload Modal -->
+  <div class="modal-overlay hidden" id="deployModal">
+    <div class="modal-card">
+      <div class="card-header">
+        <span class="card-title">DESPLEGAR CARGA DE CÓMPUTO OCI</span>
+        <button class="btn-close" id="btnCloseDeployModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="warning-banner">
+          ⚠️ ADVERTENCIA DE SEGURIDAD: Las cargas de cómputo se ejecutan en memoria RAM en texto plano en los equipos anfitriones asignados. El propietario del nodo anfitrión puede inspeccionar el código y los datos en memoria durante la ejecución.
+        </div>
+
+        <div class="input-stack" style="margin-top: 16px;">
+          <label class="field-label">MANIFIESTO YAML (.aldea-workload.yaml)</label>
+          <textarea id="yamlManifestInput" class="input-mono textarea-code" rows="8" placeholder="workload_id: wl-app-01&#10;name: my-service&#10;image: nginx:alpine&#10;type: stateless&#10;cpu_cores: 1.0&#10;memory_mb: 512"></textarea>
+          <button class="btn btn-primary" id="btnConfirmDeploy">DESPLEGAR CARGA EN EL CLÚSTER</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
