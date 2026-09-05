@@ -1,105 +1,105 @@
 # Aldea
 
-Aldea es una red de almacenamiento distribuido y cómputo peer-to-peer (P2P), auto-hospedada y de código abierto, diseñada para grupos cerrados (amigos, familias, pequeños equipos). Permite agrupar el espacio de disco no utilizado y la capacidad de cómputo de dispositivos personales a través de diferentes ubicaciones sin depender de servidores VPS de pago, proveedores en la nube centralizados ni infraestructura de terceros.
+Aldea is an open-source, self-hosted, peer-to-peer (P2P) distributed storage and compute network designed for closed groups (friends, family, small teams). It enables users to pool spare disk space and compute capacity from personal devices across locations into a unified infrastructure without relying on paid VPS hosting, centralized cloud providers, or third-party servers.
 
 ---
 
-## Características Principales
+## Core Features
 
-### 1. Almacenamiento Distribuido con Cero Conocimiento (Zero-Knowledge)
-- **Cifrado en el Cliente**: Cifrado simétrico de alta seguridad mediante XChaCha20-Poly1305 con derivación de claves Argon2id. Los datos se cifran localmente antes de salir de la máquina de origen; los nodos de almacenamiento nunca ven contenido en texto plano.
-- **Redundancia y Tolerancia a Fallos**: Fragmentación y codificación de borrado mediante Reed-Solomon ($K=4, M=4$). Cada archivo se divide en 8 fragmentos (100% de redundancia), lo que permite reconstruir la información original incluso si hasta 4 nodos fallan o se desconectan simultáneamente.
-- **División en Chunks Fijos**: Los archivos se dividen en bloques de 1 MB para una distribución uniforme y eficiente en la red P2P.
-- **Auto-Reparación de Datos**: El motor de monitoreo detecta nodos desconectados (churn) y reconstruye automáticamente los fragmentos faltantes en nodos saludables activos.
+### 1. Zero-Knowledge Distributed Storage
+- **Client-Side Encryption**: High-security symmetric encryption using XChaCha20-Poly1305 with Argon2id key derivation. Data is encrypted locally before leaving the source host; storage nodes never see unencrypted content.
+- **Redundancy & Fault Tolerance**: Reed-Solomon erasure coding ($K=4, M=4$). Every file is split into 8 shards (100% redundancy), allowing data recovery even if up to 4 storage nodes fail or go offline simultaneously.
+- **Fixed Chunking**: Files are chunked into 1 MB blocks for uniform distribution across the P2P network.
+- **Self-Healing Data Repair**: Automated liveness monitoring detects offline storage nodes (churn) and reconstructs missing shards onto active healthy nodes.
 
-### 2. Capa de Cómputo Distribuido (MicroVMs & Contenedores)
-- **Aislamiento Seguro**: Ejecución de cargas de trabajo en contenedores utilizando Kata Containers y microVMs Firecracker (`internal/runtime`), garantizando aislamiento a nivel de kernel en entornos Linux.
-- **Planificador P2P**: Distribución equilibrada de instancias de cómputo entre nodos pares en función de la capacidad de CPU y memoria RAM disponible.
-- **Enrutamiento e Ingress P2P**: Enrutamiento HTTP público/privado a servicios en ejecución con conmutación por error (stateless failover).
-- **Respaldos de Volumen de Estado**: Capturas de pantalla (snapshots) periódicas de volúmenes persistentes almacenadas de forma cifrada en la red de almacenamiento P2P.
+### 2. Distributed Compute Layer (MicroVMs & Containers)
+- **Secure Isolation**: Execution of containerized workloads using Kata Containers and Firecracker microVMs (`internal/runtime`), providing kernel-level isolation on Linux hosts.
+- **P2P Resource Scheduler**: Balanced distribution of compute instances across peer nodes based on available CPU and RAM capacity.
+- **P2P Ingress Routing**: Public and private HTTP routing for running services with automated stateless failover.
+- **Stateful Snapshot Volume Backups**: Automated periodic snapshots of persistent volumes stored securely in the P2P zero-knowledge storage pool.
 
-### 3. Red P2P y Traversal de Red (NAT)
-- **Descubrimiento y Enrutamiento DHT**: Tabla de hash distribuida (Kademlia DHT) para el descubrimiento directo entre pares.
-- **Travesía de NAT y Routers**: Soporte integrado para UPnP y STUN para conexiones P2P directas en redes domésticas.
-- **Servidores de Relevo (Relay Fallback)**: Mecanismo de retransmisión autenticado con HMAC-SHA256 (TURN/WebSocket) para entornos con NAT simétrico restrictivo.
-- **Control de Ancho de Banda**: Limitación de tasas de subida y bajada por nodo y gestión de cuotas de disco.
+### 3. P2P Networking & NAT Traversal
+- **DHT Discovery & Routing**: Kademlia Distributed Hash Table (`internal/dht`) for peer discovery and node routing.
+- **NAT & Router Traversal**: Integrated UPnP and STUN support for direct P2P connections across home network routers.
+- **Relay Fallback**: Authenticated HMAC-SHA256 relay protocol (TURN/WebSocket) for restrictive symmetric NAT environments.
+- **Bandwidth Control**: Per-node upload/download rate limiting and disk quota management.
 
-### 4. Interfaces de Usuario
-- **CLI (`aldea`)**: Cliente de línea de comandos para gestión de credenciales, transferencia de archivos y despliegue de contenedores.
-- **GUI de Escritorio (`aldea-desktop`)**: Aplicación nativa multiplataforma desarrollada en Wails v2 (Go + HTML/CSS/JS) con integración a la bandeja del sistema (System Tray GTK/Windows/macOS), métricas en tiempo real y panel de control visual.
+### 4. User Interfaces
+- **CLI (`aldea`)**: Command-line interface for credential setup, file transfers, and container deployment.
+- **Desktop GUI (`aldea-desktop`)**: Cross-platform desktop application built with Wails v2 (Go + HTML/CSS/JS) featuring system tray integration (GTK/Windows/macOS), real-time metrics, and visual workload management.
 
 ---
 
-## Arquitectura del Sistema
+## Architecture Overview
 
 ```
                        +-------------------+
                        |     trackerd      |
-                       |   (Coordinador)   |
+                       |   (Coordinator)   |
                        +---------+---------+
-                                 | Metadatos / Ubicación
+                                 | Metadata / Placement
                                  v
     +-------------------+ +-------------------+ +-------------------+
     |       noded       | |       noded       | |       noded       |
-    |    (Almacén A)    |<|    (Almacén B)    |<|    (Almacén C)    |
+    |    (Storage A)    |<|    (Storage B)    |<|    (Storage C)    |
     +-------------------+ +-------------------+ +-------------------+
               ^                     ^                     ^
               |                     |                     |
               +---------------------+---------------------+
-                          Red P2P Encubierta
+                        Encrypted P2P Mesh
 ```
 
-### Componentes del Código
-- `cmd/aldea`: CLI interactiva para clientes.
-- `cmd/noded`: Daemon de nodo de almacenamiento y cómputo que se ejecuta en los dispositivos participantes (base de datos integrada `bbolt`).
-- `cmd/trackerd`: Daemon coordinador que gestiona el estado de salud de los nodos y mantiene el catálogo de metadatos de ubicación (base de datos integrada `bbolt`).
-- `gui/`: Aplicación de escritorio Wails v2 con panel de métricas, explorador de archivos P2P y gestor de microVMs.
+### Component Breakdown
+- `cmd/aldea`: Interactive CLI client.
+- `cmd/noded`: Storage and compute node daemon running on host devices (embedded `bbolt` database).
+- `cmd/trackerd`: Coordinator daemon managing node health and placement metadata (embedded `bbolt` database).
+- `gui/`: Wails v2 desktop application with metrics monitoring, P2P file explorer, and microVM manager.
 
 ---
 
-## Requisitos de Instalación
+## Installation & Requirements
 
-- **Go**: Versión 1.22 o superior.
-- **CGO & Herramientas de Compilación**: `gcc`, `pkg-config`.
-- **Dependencias de GUI (Linux)**: `webkit2gtk-4.1` (o `webkit2gtk-4.0` en distribuciones compatibles), `gtk3`.
-- **Motor de Cómputo (Opcional para nodos con soporte microVM)**: Linux kernel con soporte KVM / Kata Containers / Firecracker.
+- **Go**: Version 1.22 or higher.
+- **CGO & Build Toolchain**: `gcc`, `pkg-config`.
+- **GUI Dependencies (Linux)**: `webkit2gtk-4.1` (or `webkit2gtk-4.0` on supported distros), `gtk3`.
+- **Compute Engine (Optional for microVM nodes)**: Linux kernel with KVM / Kata Containers / Firecracker support.
 
 ---
 
-## Guía de Inicio Rápido
+## Quickstart Guide
 
-### 1. Compilación de Binarios
+### 1. Building Binaries
 
-Para compilar las herramientas de línea de comandos y demonios:
+To compile CLI tools and daemons:
 
 ```bash
 ./scripts/build_all.sh
 ```
 
-Los ejecutables generados se ubicarán en `build/bin/`:
+Generated executables will be placed in `build/bin/`:
 - `build/bin/aldea`
 - `build/bin/noded`
 - `build/bin/trackerd`
 
-Para compilar la aplicación de escritorio nativa (Wails):
+To compile the native Wails desktop application:
 
 ```bash
 ./scripts/build_desktop.sh
 ```
 
-El ejecutable resultante estará en `build/bin/aldea-desktop-linux-amd64` (o la arquitectura correspondiente).
+The resulting executable will be `build/bin/aldea-desktop-linux-amd64` (or target platform equivalent).
 
 ---
 
-### 2. Prueba Local con Docker Compose
+### 2. Local Testing with Docker Compose
 
-Es posible desplegar un clúster local de prueba compuesto por 8 nodos de almacenamiento y 1 coordinador mediante Docker Compose:
+Spin up a local 8-node storage network + coordinator cluster:
 
 ```bash
 docker compose up -d --build
 ```
 
-Para verificar el estado de los contenedores:
+Check cluster status:
 
 ```bash
 docker compose ps
@@ -107,49 +107,49 @@ docker compose ps
 
 ---
 
-### 3. Uso desde la Línea de Comandos (CLI)
+### 3. Command Line Interface (CLI) Usage
 
-#### Inicializar configuración de cliente:
+#### Initialize client credentials:
 ```bash
-./build/bin/aldea init --tracker "http://localhost:8080" --key "clave-secreta-de-32-caracteres!"
+./build/bin/aldea init --tracker "http://localhost:8080" --key "secret-32-byte-encryption-key!"
 ```
 
-#### Consultar estado de la red y nodos activos:
+#### Check network and active nodes status:
 ```bash
 ./build/bin/aldea status
 ```
 
-#### Subir un archivo a la red P2P:
+#### Upload a file to the P2P network:
 ```bash
-./build/bin/aldea put /ruta/a/mi_imagen.png
+./build/bin/aldea put /path/to/my_image.png
 ```
-*Salida:* `uploaded: /ruta/a/mi_imagen.png -> <fileID>`
+*Output:* `uploaded: /path/to/my_image.png -> <fileID>`
 
-#### Descargar un archivo desde la red:
+#### Download a file from the network:
 ```bash
-./build/bin/aldea get <fileID> /ruta/a/imagen_recuperada.png
-```
-
-#### Desplegar un contenedor / microVM de cómputo:
-```bash
-./build/bin/aldea compute deploy --image nginx:alpine --name mi-servidor --cpus 1 --ram 512
+./build/bin/aldea get <fileID> /path/to/recovered_image.png
 ```
 
-#### Listar cargas de trabajo en ejecución:
+#### Deploy a compute container / microVM:
+```bash
+./build/bin/aldea compute deploy --image nginx:alpine --name my-server --cpus 1 --ram 512
+```
+
+#### List running compute workloads:
 ```bash
 ./build/bin/aldea compute list
 ```
 
-#### Detener y eliminar una microVM:
+#### Terminate a microVM:
 ```bash
 ./build/bin/aldea compute terminate <vmID>
 ```
 
 ---
 
-### 4. Demostración de Resiliencia Automática
+### 4. Automated Resiliency Demo
 
-El repositorio incluye un script para verificar la reconstrucción automática de fragmentos mediante Reed-Solomon ($K=4, M=4$) ante la caída intencionada de nodos:
+Run the automated test script to demonstrate Reed-Solomon ($K=4, M=4$) reconstruction during simulated node failure:
 
 ```bash
 ./scripts/demo.sh
@@ -157,44 +157,44 @@ El repositorio incluye un script para verificar la reconstrucción automática d
 
 ---
 
-## Estructura del Repositorio
+## Repository Structure
 
 ```
 .
 ├── cmd/
-│   ├── aldea/          # Cliente CLI principal
-│   ├── noded/          # Daemon de nodo de almacenamiento/cómputo
-│   └── trackerd/       # Daemon coordinador de metadatos
+│   ├── aldea/          # CLI client
+│   ├── noded/          # Storage & compute node daemon
+│   └── trackerd/       # Metadata coordinator daemon
 ├── deploy/
-│   └── docker/         # Configuraciones de despliegue Docker
-├── gui/                # Aplicación de escritorio nativa Wails v2 (Go + Frontend Web)
+│   └── docker/         # Docker deployment configurations
+├── gui/                # Wails v2 native desktop app (Go + Web Frontend)
 ├── internal/
-│   ├── bandwidth/      # Control de cuotas y límite de tasa de transferencia
-│   ├── chunker/        # Fragmentación de archivos en bloques de 1 MB
-│   ├── config/         # Carga y validación de configuración
-│   ├── crypto/         # Cifrado cliente XChaCha20-Poly1305 y Argon2id
-│   ├── dht/            # Tabla de Hash Distribuida Kademlia
-│   ├── erasure/        # Codificación Reed-Solomon (klauspost/reedsolomon)
-│   ├── ingress/        # Enrutamiento de entrada P2P HTTP
-│   ├── invite/         # Generación y validación de tokens de invitación
-│   ├── metrics/        # Recolección de métricas de sistema y rendimiento
-│   ├── nat/            # Traversal de NAT (STUN y UPnP)
-│   ├── protocol/       # Protocolos wire autenticados (HMAC-SHA256)
-│   ├── relay/          # Servidores de relevo TURN/WebSocket
-│   ├── repair/         # Motor de auto-reparación de fragmentos
-│   ├── runtime/        # Aislamiento de ejecución en contenedores (Kata/Firecracker)
-│   ├── scheduler/      # Planificador de cargas de trabajo de cómputo
-│   ├── snapshot/       # Copias de seguridad de volúmenes persistentes
-│   └── tracker/        # Motor de metadatos y asignación de bloques (bbolt)
-├── scripts/            # Scripts de compilación y demostración
-└── test/               # Pruebas de integración E2E
+│   ├── bandwidth/      # Quota management & bandwidth throttling
+│   ├── chunker/        # 1 MB chunk splitting & reassembly
+│   ├── config/         # Configuration loading & validation
+│   ├── crypto/         # XChaCha20-Poly1305 & Argon2id client-side encryption
+│   ├── dht/            # Kademlia Distributed Hash Table
+│   ├── erasure/        # Reed-Solomon erasure coding (klauspost/reedsolomon)
+│   ├── ingress/        # P2P HTTP ingress routing & tunneling
+│   ├── invite/         # Invitation token generation & validation
+│   ├── metrics/        # System & network performance metrics collector
+│   ├── nat/            # NAT traversal (STUN & UPnP)
+│   ├── protocol/       # Authenticated wire protocols (HMAC-SHA256)
+│   ├── relay/          # TURN/WebSocket fallback relay
+│   ├── repair/         # Automated shard repair engine
+│   ├── runtime/        # Container/microVM runtime isolation (Kata/Firecracker)
+│   ├── scheduler/      # Compute workload scheduler
+│   ├── snapshot/       # Persistent volume snapshot & backup engine
+│   └── tracker/        # Metadata placement & node health database (bbolt)
+├── scripts/            # Build & demo scripts
+└── test/               # Integration & E2E tests
 ```
 
 ---
 
-## Pruebas
+## Testing
 
-Para ejecutar el conjunto completo de pruebas unitarias e integración con detección de carreras (`-race`):
+Run the full test suite with race condition detection:
 
 ```bash
 go test -v -race ./...
@@ -202,6 +202,6 @@ go test -v -race ./...
 
 ---
 
-## Licencia
+## License
 
-Este proyecto está distribuido bajo los términos de la licencia MIT.
+Distributed under the MIT License.
