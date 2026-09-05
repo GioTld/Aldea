@@ -23,10 +23,9 @@ go.work.sum
 *.tmp
 *.log
 
-# Ignore all markdown documentation except README.md, SELF_HOSTING.md and GETTING_STARTED.md
+# Ignore all markdown documentation except README.md
 *.md
 **/*.md
 !README.md
 !**/README.md
-!docs/SELF_HOSTING.md
-!docs/GETTING_STARTED.md
+
